@@ -115,3 +115,49 @@ pub fn disable_popup_animation() {
         window.setAnimationBehavior(NSWindowAnimationBehavior::None);
     }
 }
+
+#[cfg(any(target_os = "macos", target_os = "linux", target_os = "freebsd"))]
+const ICON_PNG: &[u8] = include_bytes!("../assets/icon.png");
+
+/// Dock icon on macOS. The mark already includes its card and shadow, so the
+/// PNG is transparent around it.
+pub fn install_app_icon() {
+    #[cfg(target_os = "macos")]
+    {
+        use objc2::AllocAnyThread;
+        use objc2::MainThreadMarker;
+        use objc2_app_kit::{NSApplication, NSImage};
+        use objc2_foundation::NSData;
+
+        let Some(marker) = MainThreadMarker::new() else {
+            return;
+        };
+        let data =
+            unsafe { NSData::dataWithBytes_length(ICON_PNG.as_ptr().cast(), ICON_PNG.len()) };
+        let Some(image) = NSImage::initWithData(NSImage::alloc(), &data) else {
+            return;
+        };
+        unsafe {
+            NSApplication::sharedApplication(marker).setApplicationIconImage(Some(&image));
+        }
+    }
+}
+
+/// Window icon for X11. Other platforms use the process icon instead.
+pub fn window_icon() -> Option<std::sync::Arc<image::RgbaImage>> {
+    #[cfg(any(target_os = "linux", target_os = "freebsd"))]
+    {
+        static ICON: std::sync::OnceLock<Option<std::sync::Arc<image::RgbaImage>>> =
+            std::sync::OnceLock::new();
+        ICON.get_or_init(|| {
+            image::load_from_memory(ICON_PNG)
+                .ok()
+                .map(|image| std::sync::Arc::new(image.into_rgba8()))
+        })
+        .clone()
+    }
+    #[cfg(not(any(target_os = "linux", target_os = "freebsd")))]
+    {
+        None
+    }
+}

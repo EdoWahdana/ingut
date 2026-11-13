@@ -44,6 +44,7 @@ fn main() {
         .with_assets(gpui_kit::assets::Assets)
         .run(move |cx| {
             gpui_kit::init(cx);
+            platform::install_app_icon();
 
             let hotkey = HotKey::new(Some(Modifiers::META | Modifiers::SHIFT), Code::KeyV);
             let hotkey_id = hotkey.id();
@@ -244,6 +245,7 @@ fn open_popup(items: Vec<ClipItem>, cmd_tx: mpsc::Sender<StoreCmd>, cx: &mut App
             is_resizable: false,
             is_minimizable: false,
             display_id,
+            icon: platform::window_icon(),
             ..Default::default()
         },
         cx,
