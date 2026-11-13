@@ -1,0 +1,16 @@
+---
+description: Ingut UI/UX design rules. Apply whenever creating or changing anything visual (views, components, theme, styling, layout, animation).
+globs: src/ui/**
+alwaysApply: false
+---
+Before writing or changing any UI code, read `docs/DESIGN.md` in full and follow it exactly. It is the source of truth.
+
+Non-negotiables:
+- Use only the tokens in `src/ui/theme.rs` (create it from DESIGN.md section 2 if it doesn't exist). No hardcoded colors, sizes, or paddings in views.
+- Build on GPUI Kit components but restyle them with our tokens. GPUI Kit's default look alone is not finished work.
+- Every interactive element has rest, hover, pressed, focused, selected, and disabled states. Every list has empty and no-results states.
+- Support light and dark mode, keyboard-only use, and reduce-motion.
+- Match the screen specs in DESIGN.md section 3 (640×420 split-pane clipboard popup; preferences window with translucent sidebar).
+- Avoid everything in DESIGN.md section 5.
+- Before finishing, go through the checklist in DESIGN.md section 6 and state which items you verified.
+If a request conflicts with DESIGN.md, point out the conflict and ask before deviating.

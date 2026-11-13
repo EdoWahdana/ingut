@@ -1,0 +1,29 @@
+[package]
+name = "ingut"
+version = "0.1.0"
+edition = "2021"
+description = "Ingut: a light, open-source, cross-platform clipboard manager built with GPUI."
+license = "MIT"
+
+[dependencies]
+# GPUI Kit is the only UI crate. It pins a matching GPUI and re-exports
+# GPUI, gpui-base, gpui-component, and the Lucide icons.
+gpui-kit = "0.9"
+arboard = "3"
+anyhow = "1"
+rusqlite = { version = "0.42.0", features = ["bundled"] }
+directories = "6.0.0"
+nucleo-matcher = "0.3.1"
+global-hotkey = "0.10.0"
+image = { version = "0.25.10", default-features = false, features = ["png", "jpeg", "gif", "webp"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+# Global cursor position. GPUI only reports the mouse relative to a window.
+core-graphics = "0.25.0"
+# Hand keyboard focus back to the previous app without the animated hide.
+objc2 = "0.6.5"
+objc2-app-kit = { version = "0.3.2", default-features = false, features = ["std", "NSApplication", "NSPasteboard", "NSWindow", "NSWorkspace", "NSRunningApplication"] }
+
+# Added later, one roadmap item at a time (see docs/ROADMAP.md):
+# tray-icon = "0.19"
+# enigo = "0.2"

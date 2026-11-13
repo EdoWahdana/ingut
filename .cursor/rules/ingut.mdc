@@ -1,0 +1,9 @@
+---
+description: Konteks proyek Ingut (clipboard manager GPUI)
+alwaysApply: true
+---
+Ini proyek Ingut, clipboard manager open source yang ringan, cantik, dan cross-platform dengan Rust + GPUI Kit (`gpui-kit`), terinspirasi Maccy.
+Selalu ikuti `AGENTS.md` (prinsip produk, struktur, aturan lapisan) dan kerjakan sesuai urutan di `docs/ROADMAP.md`. Pakai library dan referensi di `docs/REFERENCES.md`.
+Pakai hanya `gpui-kit` sebagai dependency UI (bukan git repo Zed). Cek API di https://gpui-kit.com atau docs.rs untuk versi terpasang, jangan menebak.
+Prioritas: ringan > cepat dengan keyboard > cantik > privasi lokal > cross-platform.
+Untuk pekerjaan UI apa pun, ikuti `docs/DESIGN.md` (lihat rule `ui-design`).
