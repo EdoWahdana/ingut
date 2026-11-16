@@ -20,7 +20,7 @@ jobs:
       matrix:
         include:
           - os: macos-latest
-            asset: ingut-macos-aarch64
+            asset: ingut-macos-aarch64.dmg
           - os: ubuntu-24.04
             asset: ingut-linux-x86_64
           - os: windows-latest
@@ -50,8 +50,14 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         run: cargo build --release --locked
 
+      - name: Package macOS disk image
+        if: runner.os == 'macOS' && startsWith(github.ref, 'refs/tags/v')
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          ./script/package-macos.sh target/release/ingut "$version" "dist/${{ matrix.asset }}"
+
       - name: Collect binary
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: runner.os != 'macOS' && startsWith(github.ref, 'refs/tags/v')
         shell: bash
         run: |
           mkdir -p dist
@@ -66,7 +72,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         with:
           name: ${{ matrix.asset }}
-          path: dist/${{ matrix.asset }}
+          path: dist/*
 
   release:
     name: Publish release

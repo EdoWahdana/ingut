@@ -63,7 +63,7 @@ Tagged versions are published on the [releases page](https://github.com/EdoWahda
 
 | File | System |
 | --- | --- |
-| `ingut-macos-aarch64` | macOS on Apple silicon |
+| `ingut-macos-aarch64.dmg` | macOS on Apple silicon. Open the disk image and drag Ingut onto Applications. |
 | `ingut-windows-x86_64.exe` | Windows |
 | `ingut-linux-x86_64` | Linux |
 
