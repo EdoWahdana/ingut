@@ -5,8 +5,7 @@
 <h1 align="center">Ingut</h1>
 
 <p align="center">
-  A small, keyboard-first clipboard manager for macOS, Windows, and Linux.<br>
-  The name comes from the Indonesian word <em>ingat</em>, “to remember.”
+  A small, keyboard-first clipboard manager for macOS, Windows, and Linux.
 </p>
 
 <p align="center">
@@ -59,15 +58,9 @@ The shortcut is **Command-Shift-V** on macOS and **Windows-Shift-V** on Windows.
 
 ## Download
 
-Tagged versions are published on the [releases page](https://github.com/EdoWahdana/ingut/releases). Each release contains:
+Tagged versions are published on the [releases page](https://github.com/EdoWahdana/ingut/releases). A release contains the source code as a zip and a tar.gz. Build it locally with the steps below.
 
-| File | System |
-| --- | --- |
-| `ingut-macos-aarch64.dmg` | macOS on Apple silicon. Open the disk image and drag Ingut onto Applications. |
-| `ingut-windows-x86_64.exe` | Windows |
-| `ingut-linux-x86_64` | Linux |
-
-A push to `main` only runs the tests. A `v*` tag is what publishes a release.
+A push to `main` only runs the tests. A `v*` tag publishes the release.
 
 ## Build
 

@@ -2,3 +2,7 @@
 .DS_Store
 *.db
 .agents/
+
+# MD files for development
+docs/DESIGN.md
+docs/REFERENCES.md

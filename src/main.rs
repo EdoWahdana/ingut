@@ -1,4 +1,4 @@
-//! Ingut, from the word "ingat". A light, cross-platform clipboard manager.
+//! A light, cross-platform clipboard manager.
 
 mod clipboard;
 mod platform;
