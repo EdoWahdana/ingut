@@ -1,13 +1,13 @@
 #!/bin/bash
-# Build Ingut.app and a drag-to-Applications disk image.
-# Usage: script/package-macos.sh <ingut-binary> <version> <output.dmg>
+# Build an Ingut.app bundle from a compiled ingut binary.
+# Usage: script/package-macos.sh <ingut-binary> <version> <output.app>
 
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BINARY="${1:?path to the ingut binary}"
 VERSION="${2:?version, without a leading v}"
-OUTPUT="${3:?path to the .dmg to write}"
+OUTPUT="${3:?path to the .app to write}"
 
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
@@ -38,23 +38,6 @@ chmod +x "$APP/Contents/MacOS/ingut"
 cp "$WORK/AppIcon.icns" "$APP/Contents/Resources/AppIcon.icns"
 sed "s/VERSION/${VERSION}/g" "$ROOT/packaging/macos/Info.plist" > "$APP/Contents/Info.plist"
 
-if [[ ! -f "$ROOT/packaging/macos/background.png" ]]; then
-  LOGO="$ROOT/assets/icon.png" OUT="$ROOT/packaging/macos/background.png" \
-    osascript -l JavaScript "$ROOT/packaging/macos/render_background.js"
-fi
-
-PYTHON="python3"
-if ! python3 -c "import dmgbuild" >/dev/null 2>&1; then
-  python3 -m venv "$WORK/venv"
-  "$WORK/venv/bin/pip" install dmgbuild
-  PYTHON="$WORK/venv/bin/python"
-fi
-
+rm -rf "$OUTPUT"
 mkdir -p "$(dirname "$OUTPUT")"
-"$PYTHON" -m dmgbuild \
-  -s "$ROOT/packaging/macos/dmg_settings.py" \
-  -D "app=$APP" \
-  -D "background=$ROOT/packaging/macos/background.png" \
-  -D "icon=$WORK/AppIcon.icns" \
-  "Ingut" \
-  "$OUTPUT"
+ditto "$APP" "$OUTPUT"

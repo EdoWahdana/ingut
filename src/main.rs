@@ -40,83 +40,89 @@ enum StoreCmd {
 }
 
 fn main() {
-    gpui_kit::application()
-        .with_assets(gpui_kit::assets::Assets)
-        .run(move |cx| {
-            gpui_kit::init(cx);
-            platform::install_app_icon();
+    let app = gpui_kit::application().with_assets(gpui_kit::assets::Assets);
+    // GPUI's Headless request is the macOS accessory policy: no Dock icon and
+    // no Command-Tab entry, while windows still draw. Linux stays windowed,
+    // because Headless there means no display server.
+    #[cfg(target_os = "macos")]
+    let app = app.with_windowing(WindowingRequest::Headless);
+    app.run(move |cx| {
+        gpui_kit::init(cx);
+        #[cfg(target_os = "macos")]
+        cx.set_activation_policy(ActivationPolicy::Accessory);
+        platform::install_app_icon();
 
-            let hotkey = HotKey::new(Some(Modifiers::META | Modifiers::SHIFT), Code::KeyV);
-            let hotkey_id = hotkey.id();
-            let manager = match GlobalHotKeyManager::new() {
-                Ok(manager) => {
-                    if let Err(err) = manager.register(hotkey) {
-                        eprintln!("Ingut: failed to register the global shortcut: {err}");
-                    }
-                    Some(manager)
+        let hotkey = HotKey::new(Some(Modifiers::META | Modifiers::SHIFT), Code::KeyV);
+        let hotkey_id = hotkey.id();
+        let manager = match GlobalHotKeyManager::new() {
+            Ok(manager) => {
+                if let Err(err) = manager.register(hotkey) {
+                    eprintln!("Ingut: failed to register the global shortcut: {err}");
                 }
-                Err(err) => {
-                    eprintln!("Ingut: global shortcut is unavailable: {err}");
-                    None
-                }
-            };
+                Some(manager)
+            }
+            Err(err) => {
+                eprintln!("Ingut: global shortcut is unavailable: {err}");
+                None
+            }
+        };
 
-            let (list_tx, list_rx) = mpsc::channel();
-            let (image_tx, image_rx) = mpsc::channel();
-            let (cmd_tx, cmd_rx) = mpsc::channel();
-            thread::spawn(move || watch_history(list_tx, image_tx, cmd_rx));
+        let (list_tx, list_rx) = mpsc::channel();
+        let (image_tx, image_rx) = mpsc::channel();
+        let (cmd_tx, cmd_rx) = mpsc::channel();
+        thread::spawn(move || watch_history(list_tx, image_tx, cmd_rx));
 
-            cx.spawn(async move |cx| {
-                let _manager = manager;
-                let mut items = Vec::new();
-                let mut popup = None;
-                let mut opened = false;
+        cx.spawn(async move |cx| {
+            let _manager = manager;
+            let mut items = Vec::new();
+            let mut popup = None;
+            let mut opened = false;
 
-                loop {
-                    let mut saw_snapshot = false;
-                    while let Ok(latest) = list_rx.try_recv() {
-                        items = latest;
-                        saw_snapshot = true;
-                        if let Some(current) = popup.as_ref() {
-                            let pushed = cx.update(|cx| push_items(current, items.clone(), cx));
-                            if !pushed {
-                                popup = None;
-                            }
+            loop {
+                let mut saw_snapshot = false;
+                while let Ok(latest) = list_rx.try_recv() {
+                    items = latest;
+                    saw_snapshot = true;
+                    if let Some(current) = popup.as_ref() {
+                        let pushed = cx.update(|cx| push_items(current, items.clone(), cx));
+                        if !pushed {
+                            popup = None;
                         }
                     }
-
-                    while let Ok((id, bytes)) = image_rx.try_recv() {
-                        if let Some(current) = popup.as_ref() {
-                            let pushed = cx.update(|cx| supply_image(current, id, bytes, cx));
-                            if !pushed {
-                                popup = None;
-                            }
-                        }
-                    }
-
-                    if !opened && saw_snapshot {
-                        while GlobalHotKeyEvent::receiver().try_recv().is_ok() {}
-                        opened = true;
-                        popup = cx.update(|cx| Some(open_popup(items.clone(), cmd_tx.clone(), cx)));
-                    }
-
-                    if opened {
-                        while let Ok(event) = GlobalHotKeyEvent::receiver().try_recv() {
-                            if event.state == HotKeyState::Pressed && event.id == hotkey_id {
-                                popup = cx.update(|cx| {
-                                    toggle_popup(popup, items.clone(), cmd_tx.clone(), cx)
-                                });
-                            }
-                        }
-                    }
-
-                    cx.background_executor()
-                        .timer(Duration::from_millis(20))
-                        .await;
                 }
-            })
-            .detach();
-        });
+
+                while let Ok((id, bytes)) = image_rx.try_recv() {
+                    if let Some(current) = popup.as_ref() {
+                        let pushed = cx.update(|cx| supply_image(current, id, bytes, cx));
+                        if !pushed {
+                            popup = None;
+                        }
+                    }
+                }
+
+                if !opened && saw_snapshot {
+                    while GlobalHotKeyEvent::receiver().try_recv().is_ok() {}
+                    opened = true;
+                    popup = cx.update(|cx| Some(open_popup(items.clone(), cmd_tx.clone(), cx)));
+                }
+
+                if opened {
+                    while let Ok(event) = GlobalHotKeyEvent::receiver().try_recv() {
+                        if event.state == HotKeyState::Pressed && event.id == hotkey_id {
+                            popup = cx.update(|cx| {
+                                toggle_popup(popup, items.clone(), cmd_tx.clone(), cx)
+                            });
+                        }
+                    }
+                }
+
+                cx.background_executor()
+                    .timer(Duration::from_millis(20))
+                    .await;
+            }
+        })
+        .detach();
+    });
 }
 
 fn clip_fingerprint(store: &SqliteHistory, item: &ClipItem) -> Option<String> {
